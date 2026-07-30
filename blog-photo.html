@@ -151,10 +151,10 @@ function handleFile(input){
 var files=Array.from(input.files);
 if(files.length===0)return;
 // 限制总数
-if(batchFiles.length+files.length > 20){alert('一次最多添加20张照片');input.value='';return}
+// no count limit
 var loaded=0;
 files.forEach(function(file){
-if(file.size>5*1024*1024){alert(file.name+' 超过5MB，已跳过');loaded++;return}
+// no size limit
 var reader=new FileReader();
 reader.onload=function(e){
 batchFiles.push({dataUrl:e.target.result,filename:file.name.replace(/.[^.]+$/,'')});
