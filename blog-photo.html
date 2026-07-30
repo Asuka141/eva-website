@@ -128,21 +128,89 @@ body{font-family:var(--font);background:#111118;color:var(--text);font-size:28px
 </div>
 </div>
 
+
 <script>
-var STORAGE_KEY = 'blog_photo_gallery';
+var DB_NAME = 'photo_gallery_db';
+var STORE_NAME = 'photos';
 var editingIdx = -1;
 var batchFiles = []; // {dataUrl, filename}
+var db = null;
 
-function getPhotos(){var d=localStorage.getItem(STORAGE_KEY);return d?JSON.parse(d):[]}
-function savePhotos(p){localStorage.setItem(STORAGE_KEY,JSON.stringify(p))}
+function openDB(){
+return new Promise(function(resolve,reject){
+var req=indexedDB.open(DB_NAME,1);
+req.onupgradeneeded=function(e){e.target.result.createObjectStore(STORE_NAME,{keyPath:'id',autoIncrement:true})};
+req.onsuccess=function(e){db=e.target.result;resolve(db)};
+req.onerror=function(e){reject(e)}
+})
+}
 
-function renderPhotos(){
-var photos=getPhotos();
+function getPhotos(){return new Promise(function(resolve){
+openDB().then(function(){
+var tx=db.transaction(STORE_NAME,'readonly');
+var store=tx.objectStore(STORE_NAME);
+var req=store.getAll();
+req.onsuccess=function(){resolve(req.result)}
+req.onerror=function(){resolve([])}
+}).catch(function(){resolve([])})
+})}
+
+function addPhotos(photos){return new Promise(function(resolve){
+openDB().then(function(){
+var tx=db.transaction(STORE_NAME,'readwrite');
+var store=tx.objectStore(STORE_NAME);
+var count=0;
+photos.forEach(function(p){store.add(p);count++});
+tx.oncomplete=function(){resolve(count)}
+tx.onerror=function(){resolve(0)}
+}).catch(function(){resolve(0)})
+})}
+
+function updatePhoto(id,data){return new Promise(function(resolve){
+openDB().then(function(){
+var tx=db.transaction(STORE_NAME,'readwrite');
+var store=tx.objectStore(STORE_NAME);
+store.put({id:id,title:data.title,desc:data.desc,image:data.image,date:data.date});
+tx.oncomplete=function(){resolve(true)}
+tx.onerror=function(){resolve(false)}
+}).catch(function(){resolve(false)})
+})}
+
+function deletePhotoDB(id){return new Promise(function(resolve){
+openDB().then(function(){
+var tx=db.transaction(STORE_NAME,'readwrite');
+var store=tx.objectStore(STORE_NAME);
+store.delete(id);
+tx.oncomplete=function(){resolve(true)}
+tx.onerror=function(){resolve(false)}
+}).catch(function(){resolve(false)})
+})}
+
+function compressImage(dataUrl,maxW){
+return new Promise(function(resolve){
+var img=new Image();
+img.onload=function(){
+var w=img.width,h=img.height;
+if(w<=maxW){resolve(dataUrl);return}
+var ratio=maxW/w;
+var canvas=document.createElement('canvas');
+canvas.width=maxW;canvas.height=h*ratio;
+var ctx=canvas.getContext('2d');
+ctx.drawImage(img,0,0,maxW,h*ratio);
+resolve(canvas.toDataURL('image/jpeg',0.75))
+};
+img.onerror=function(){resolve(dataUrl)};
+img.src=dataUrl
+})
+}
+
+async function renderPhotos(){
+var photos=await getPhotos();
 var grid=document.getElementById('photoGrid');
 if(photos.length===0){grid.innerHTML='<div class="empty-state" id="emptyState"><i class="fas fa-camera-retro"></i><p>还没有作品，点击右上角「批量添加照片」</p></div>';return}
 grid.innerHTML=photos.slice().reverse().map(function(p,idx){
-var ri=photos.length-1-idx;
-return '<div class="photo-card"><img src="'+p.image+'" alt="'+p.title+'"><div class="photo-info"><h4>'+p.title+'</h4><p>'+p.desc+'</p><div class="date">'+p.date+'</div></div><div class="photo-actions"><button class="btn-edit" onclick="openEditor('+ri+')"><i class="fas fa-edit"></i> 编辑</button><button class="btn-del" onclick="deletePhoto('+ri+')"><i class="fas fa-trash"></i> 删除</button></div></div>'
+var id=p.id;
+return '<div class="photo-card"><img src="'+p.image+'" alt="'+p.title+'"><div class="photo-info"><h4>'+p.title+'</h4><p>'+p.desc+'</p><div class="date">'+p.date+'</div></div><div class="photo-actions"><button class="btn-edit" onclick="openEditor('+id+')"><i class="fas fa-edit"></i> 编辑</button><button class="btn-del" onclick="deletePhoto('+id+')"><i class="fas fa-trash"></i> 删除</button></div></div>'
 }).join('')
 }
 
@@ -150,14 +218,12 @@ return '<div class="photo-card"><img src="'+p.image+'" alt="'+p.title+'"><div cl
 function handleFile(input){
 var files=Array.from(input.files);
 if(files.length===0)return;
-// 限制总数
-// no count limit
 var loaded=0;
 files.forEach(function(file){
-// no size limit
 var reader=new FileReader();
-reader.onload=function(e){
-batchFiles.push({dataUrl:e.target.result,filename:file.name.replace(/.[^.]+$/,'')});
+reader.onload=async function(e){
+var compressed=await compressImage(e.target.result,1200);
+batchFiles.push({dataUrl:compressed,filename:file.name.replace(/\.[^.]+$/,'')});
 loaded++;
 if(loaded===files.length)renderBatchPreview()
 };
@@ -176,24 +242,27 @@ batchFiles.map(function(f,i){return '<div class="thumb selected" onclick="remove
 
 function removeBatchFile(i){batchFiles.splice(i,1);renderBatchPreview()}
 
-function openEditor(idx){
-editingIdx=idx;
+var editingId=null;
+function openEditor(id){
+editingId=(id!==undefined&&id!==-1)?id:null;
 batchFiles=[];
 document.getElementById('batchPreview').innerHTML='';
 document.getElementById('photoFile').value='';
 document.getElementById('modalOverlay').classList.add('active');
-if(idx>=0){
-var photos=getPhotos();
-var p=photos[idx];
+if(editingId!==null){
+getPhotos().then(function(photos){
+var p=photos.find(function(ph){return ph.id===editingId});
+if(!p)return;
 document.getElementById('modalTitle').innerHTML='<span>■</span> 编辑照片';
 document.getElementById('btnSubmit').textContent='保存修改';
-document.getElementById('photoTitle').value=p.title;
-document.getElementById('photoDesc').value=p.desc;
+document.getElementById('photoTitle').value=p.title||'';
+document.getElementById('photoDesc').value=p.desc||'';
 document.getElementById('fileUploadArea').style.display='none';
 document.getElementById('batchPreview').innerHTML='<div class="batch-preview-grid"><div class="thumb selected"><img src="'+p.image+'"></div></div>'
+})
 }else{
 document.getElementById('modalTitle').innerHTML='<span>■</span> 批量添加照片';
-document.getElementById('btnSubmit').textContent='保存全部 ('+batchFiles.length+'张)';
+document.getElementById('btnSubmit').textContent='保存全部 (0张)';
 document.getElementById('photoTitle').value='';
 document.getElementById('photoDesc').value='';
 document.getElementById('fileUploadArea').style.display='block';
@@ -204,49 +273,55 @@ setTimeout(function(){document.getElementById('photoTitle').focus()},100)
 
 function closeEditor(){
 document.getElementById('modalOverlay').classList.remove('active');
-editingIdx=-1;
+editingId=null;
 batchFiles=[];
 document.getElementById('fileUploadArea').style.display='block'
 }
 
-function savePhoto(){
+async function savePhoto(){
 var title=document.getElementById('photoTitle').value.trim();
 var desc=document.getElementById('photoDesc').value.trim();
 var now=new Date();
 var dateStr=now.getFullYear()+'.'+String(now.getMonth()+1).padStart(2,'0')+'.'+String(now.getDate()).padStart(2,'0');
-var photos=getPhotos();
 
-if(editingIdx>=0){
-photos[editingIdx].title=title||photos[editingIdx].title;
-photos[editingIdx].desc=desc||photos[editingIdx].desc;
+if(editingId!==null){
+var photos=await getPhotos();
+var p=photos.find(function(ph){return ph.id===editingId});
+if(p){
+await updatePhoto(editingId,{title:title||p.title,desc:desc||p.desc,image:p.image,date:p.date})
+}
 }else{
 if(batchFiles.length===0){alert('请选择至少一张照片');return}
-batchFiles.forEach(function(f){
-photos.push({title:title||f.filename,desc:desc||'',image:f.dataUrl,date:dateStr})
-})
+document.getElementById('btnSubmit').textContent='保存中...';
+document.getElementById('btnSubmit').disabled=true;
+var toAdd=batchFiles.map(function(f){return{title:title||f.filename,desc:desc||'',image:f.dataUrl,date:dateStr}});
+try{
+await addPhotos(toAdd);
+}catch(e){
+alert('保存失败：'+e.message);
+document.getElementById('btnSubmit').textContent='保存全部 ('+batchFiles.length+'张)';
+document.getElementById('btnSubmit').disabled=false;
+return
 }
-savePhotos(photos);
-renderPhotos();
+}
+await renderPhotos();
 closeEditor();
-
-// 通知首页刷新
-try{window.opener&&window.opener.refreshBlogPreviews&&window.opener.refreshBlogPreviews()}catch(e){}
 window.dispatchEvent(new Event('photoUpdated'))
 }
 
-function deletePhoto(idx){
+async function deletePhoto(id){
 if(!confirm('确定删除这张照片？'))return;
-var photos=getPhotos();
-photos.splice(idx,1);
-savePhotos(photos);
-renderPhotos()
+await deletePhotoDB(id);
+await renderPhotos()
 }
 
 // 拖拽上传
 var uploadArea=document.getElementById('fileUploadArea');
+if(uploadArea){
 uploadArea.addEventListener('dragover',function(e){e.preventDefault();this.style.borderColor='var(--red)';this.style.background='rgba(220,20,60,0.06)'});
 uploadArea.addEventListener('dragleave',function(e){e.preventDefault();this.style.borderColor='rgba(220,20,60,0.2)';this.style.background=''});
-uploadArea.addEventListener('drop',function(e){e.preventDefault();this.style.borderColor='rgba(220,20,60,0.2)';this.style.background='';var dt=e.dataTransfer;if(dt.files.length>0){var inp=document.getElementById('photoFile');inp.files=dt.files;handleFile(inp)}});
+uploadArea.addEventListener('drop',function(e){e.preventDefault();this.style.borderColor='rgba(220,20,60,0.2)';this.style.background='';var dt=e.dataTransfer;if(dt.files.length>0){var inp=document.getElementById('photoFile');inp.files=dt.files;handleFile(inp)}})
+}
 
 document.getElementById('modalOverlay').addEventListener('click',function(e){if(e.target===this)closeEditor()});
 document.addEventListener('keydown',function(e){if(e.key==='Escape')closeEditor()});
@@ -254,14 +329,14 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape')closeEditor(
 var backTop=document.getElementById('backTop');
 window.addEventListener('scroll',function(){backTop.classList.toggle('visible',window.scrollY>400)});
 backTop.addEventListener('click',function(){window.scrollTo({top:0,behavior:'smooth'})});
-window.addEventListener('load',function(){setTimeout(function(){document.getElementById('nervLoader').classList.add('hidden')},600)});
+window.addEventListener('load',function(){setTimeout(function(){var el=document.getElementById('nervLoader');if(el)el.classList.add('hidden')},600)});
 
 // 实时更新按钮文字
 var origOpenEditor=openEditor;
-openEditor=function(idx){
-origOpenEditor(idx);
+openEditor=function(id){
+origOpenEditor(id);
 var btn=document.getElementById('btnSubmit');
-if(idx<0){
+if(id===undefined||id===-1){
 var updater=setInterval(function(){
 if(!document.getElementById('modalOverlay').classList.contains('active')){clearInterval(updater);return}
 btn.textContent='保存全部 ('+batchFiles.length+'张)'
