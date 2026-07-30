@@ -95,7 +95,7 @@ body{font-family:var(--font);background:#111118;color:var(--text);font-size:28px
 <a href="index.html?v=3" class="back-link"><i class="fas fa-arrow-left"></i> 返回</a>
 <div><div class="page-title"><span>■</span> 摄影作品</div><div class="page-sub">PHOTOGRAPHY GALLERY</div></div>
 </div>
-<button class="btn-add" onclick="openEditor(-1)"><i class="fas fa-plus"></i> 批量添加照片</button>
+<button class="btn-add" onclick="openBatch()"><i class="fas fa-plus"></i> 批量添加照片</button>
 </div>
 
 <div class="photo-grid" id="photoGrid"></div>
@@ -122,229 +122,255 @@ body{font-family:var(--font);background:#111118;color:var(--text);font-size:28px
 <div class="form-group"><label>统一描述（选填）</label><textarea id="photoDesc" placeholder="简单的描述..."></textarea></div>
 
 <div class="form-actions">
-<button class="btn-cancel" onclick="closeEditor()">取消</button>
-<button class="btn-submit" id="btnSubmit" onclick="savePhoto()">保存全部</button>
+<button class="btn-cancel" onclick="closeModal()">取消</button>
+<button class="btn-submit" id="btnSubmit" onclick="doSave()">保存全部</button>
 </div>
 </div>
 </div>
+
 
 
 <script>
-var DB_NAME = 'photo_gallery_db';
-var STORE_NAME = 'photos';
-var editingIdx = -1;
-var batchFiles = []; // {dataUrl, filename}
+var DB_NAME = 'PhotoGalleryDB';
 var db = null;
+var batchDataUrls = [];
+var editId = null;
+var saveLocked = false;
 
-function openDB(){
-return new Promise(function(resolve,reject){
-var req=indexedDB.open(DB_NAME,1);
-req.onupgradeneeded=function(e){e.target.result.createObjectStore(STORE_NAME,{keyPath:'id',autoIncrement:true})};
-req.onsuccess=function(e){db=e.target.result;resolve(db)};
-req.onerror=function(e){reject(e)}
-})
+// ====== IndexedDB helpers ======
+function initDB(cb){
+  var r = indexedDB.open(DB_NAME, 1);
+  r.onupgradeneeded = function(e){ e.target.result.createObjectStore('pics', {keyPath:'id', autoIncrement:true}); };
+  r.onsuccess = function(e){ db = e.target.result; cb(null); };
+  r.onerror = function(e){ cb(e.target.error); };
 }
 
-function getPhotos(){return new Promise(function(resolve){
-openDB().then(function(){
-var tx=db.transaction(STORE_NAME,'readonly');
-var store=tx.objectStore(STORE_NAME);
-var req=store.getAll();
-req.onsuccess=function(){resolve(req.result)}
-req.onerror=function(){resolve([])}
-}).catch(function(){resolve([])})
-})}
-
-function addPhotos(photos){return new Promise(function(resolve){
-openDB().then(function(){
-var tx=db.transaction(STORE_NAME,'readwrite');
-var store=tx.objectStore(STORE_NAME);
-var count=0;
-photos.forEach(function(p){store.add(p);count++});
-tx.oncomplete=function(){resolve(count)}
-tx.onerror=function(){resolve(0)}
-}).catch(function(){resolve(0)})
-})}
-
-function updatePhoto(id,data){return new Promise(function(resolve){
-openDB().then(function(){
-var tx=db.transaction(STORE_NAME,'readwrite');
-var store=tx.objectStore(STORE_NAME);
-store.put({id:id,title:data.title,desc:data.desc,image:data.image,date:data.date});
-tx.oncomplete=function(){resolve(true)}
-tx.onerror=function(){resolve(false)}
-}).catch(function(){resolve(false)})
-})}
-
-function deletePhotoDB(id){return new Promise(function(resolve){
-openDB().then(function(){
-var tx=db.transaction(STORE_NAME,'readwrite');
-var store=tx.objectStore(STORE_NAME);
-store.delete(id);
-tx.oncomplete=function(){resolve(true)}
-tx.onerror=function(){resolve(false)}
-}).catch(function(){resolve(false)})
-})}
-
-function compressImage(dataUrl,maxW){
-return new Promise(function(resolve){
-var img=new Image();
-img.onload=function(){
-var w=img.width,h=img.height;
-if(w<=maxW){resolve(dataUrl);return}
-var ratio=maxW/w;
-var canvas=document.createElement('canvas');
-canvas.width=maxW;canvas.height=h*ratio;
-var ctx=canvas.getContext('2d');
-ctx.drawImage(img,0,0,maxW,h*ratio);
-resolve(canvas.toDataURL('image/jpeg',0.75))
-};
-img.onerror=function(){resolve(dataUrl)};
-img.src=dataUrl
-})
+function loadAll(cb){
+  if(!db){ initDB(function(err){ if(err){cb(err,[]);return;} loadAll(cb); }); return; }
+  var tx = db.transaction('pics','readonly');
+  var req = tx.objectStore('pics').getAll();
+  req.onsuccess = function(){ cb(null, req.result); };
+  req.onerror = function(){ cb(req.error, []); };
 }
 
-async function renderPhotos(){
-var photos=await getPhotos();
-var grid=document.getElementById('photoGrid');
-if(photos.length===0){grid.innerHTML='<div class="empty-state" id="emptyState"><i class="fas fa-camera-retro"></i><p>还没有作品，点击右上角「批量添加照片」</p></div>';return}
-grid.innerHTML=photos.slice().reverse().map(function(p,idx){
-var id=p.id;
-return '<div class="photo-card"><img src="'+p.image+'" alt="'+p.title+'"><div class="photo-info"><h4>'+p.title+'</h4><p>'+p.desc+'</p><div class="date">'+p.date+'</div></div><div class="photo-actions"><button class="btn-edit" onclick="openEditor('+id+')"><i class="fas fa-edit"></i> 编辑</button><button class="btn-del" onclick="deletePhoto('+id+')"><i class="fas fa-trash"></i> 删除</button></div></div>'
-}).join('')
+function saveAll(list, cb){
+  if(!db){ initDB(function(err){ if(err){cb(err);return;} saveAll(list, cb); }); return; }
+  var tx = db.transaction('pics','readwrite');
+  var store = tx.objectStore('pics');
+  var done = 0, total = list.length;
+  if(total===0){ cb(null); return; }
+  list.forEach(function(item){ store.add(item); });
+  tx.oncomplete = function(){ cb(null); };
+  tx.onerror = function(){ cb(tx.error); };
 }
 
-/* 批量文件处理 */
-function handleFile(input){
-var files=Array.from(input.files);
-if(files.length===0)return;
-var loaded=0;
-files.forEach(function(file){
-var reader=new FileReader();
-reader.onload=async function(e){
-var compressed=await compressImage(e.target.result,1200);
-batchFiles.push({dataUrl:compressed,filename:file.name.replace(/\.[^.]+$/,'')});
-loaded++;
-if(loaded===files.length)renderBatchPreview()
-};
-reader.readAsDataURL(file)
-});
-input.value=''
+function updateOne(id, data, cb){
+  if(!db){ cb(new Error('db not ready')); return; }
+  var tx = db.transaction('pics','readwrite');
+  var store = tx.objectStore('pics');
+  store.put({id:id, title:data.title, desc:data.desc, image:data.image, date:data.date});
+  tx.oncomplete = function(){ cb(null); };
+  tx.onerror = function(){ cb(tx.error); };
 }
 
-function renderBatchPreview(){
-var el=document.getElementById('batchPreview');
-if(batchFiles.length===0){el.innerHTML='';return}
-el.innerHTML='<div class="batch-count">已选择 <strong>'+batchFiles.length+'</strong> 张照片（点击缩略图可移除）</div><div class="batch-preview-grid">'+
-batchFiles.map(function(f,i){return '<div class="thumb selected" onclick="removeBatchFile('+i+')" title="'+f.filename+' - 点击移除"><img src="'+f.dataUrl+'"><div class="thumb-check"><i class="fas fa-times"></i></div></div>'}).join('')+
-'</div>'
+function deleteOne(id, cb){
+  if(!db){ cb(new Error('db not ready')); return; }
+  var tx = db.transaction('pics','readwrite');
+  tx.objectStore('pics').delete(id);
+  tx.oncomplete = function(){ cb(null); };
+  tx.onerror = function(){ cb(tx.error); };
 }
 
-function removeBatchFile(i){batchFiles.splice(i,1);renderBatchPreview()}
-
-var editingId=null;
-function openEditor(id){
-editingId=(id!==undefined&&id!==-1)?id:null;
-batchFiles=[];
-document.getElementById('batchPreview').innerHTML='';
-document.getElementById('photoFile').value='';
-document.getElementById('modalOverlay').classList.add('active');
-if(editingId!==null){
-getPhotos().then(function(photos){
-var p=photos.find(function(ph){return ph.id===editingId});
-if(!p)return;
-document.getElementById('modalTitle').innerHTML='<span>■</span> 编辑照片';
-document.getElementById('btnSubmit').textContent='保存修改';
-document.getElementById('photoTitle').value=p.title||'';
-document.getElementById('photoDesc').value=p.desc||'';
-document.getElementById('fileUploadArea').style.display='none';
-document.getElementById('batchPreview').innerHTML='<div class="batch-preview-grid"><div class="thumb selected"><img src="'+p.image+'"></div></div>'
-})
-}else{
-document.getElementById('modalTitle').innerHTML='<span>■</span> 批量添加照片';
-document.getElementById('btnSubmit').textContent='保存全部 (0张)';
-document.getElementById('photoTitle').value='';
-document.getElementById('photoDesc').value='';
-document.getElementById('fileUploadArea').style.display='block';
-document.getElementById('batchPreview').innerHTML=''
-}
-setTimeout(function(){document.getElementById('photoTitle').focus()},100)
+// ====== Image compression ======
+function shrink(src, maxW, cb){
+  try{
+    var img = new Image();
+    img.onload = function(){
+      var w=img.width, h=img.height;
+      if(w<=maxW){ cb(null, src); return; }
+      var ratio=maxW/w, c=document.createElement('canvas');
+      c.width=maxW; c.height=h*ratio;
+      c.getContext('2d').drawImage(img,0,0,maxW,h*ratio);
+      cb(null, c.toDataURL('image/jpeg',0.75));
+    };
+    img.onerror = function(){ cb(null, src); };
+    img.src = src;
+  }catch(e){ cb(null, src); }
 }
 
-function closeEditor(){
-document.getElementById('modalOverlay').classList.remove('active');
-editingId=null;
-batchFiles=[];
-document.getElementById('fileUploadArea').style.display='block'
+// ====== UI ======
+function render(photos){
+  var grid = document.getElementById('photoGrid');
+  if(!photos||photos.length===0){
+    grid.innerHTML='<div class="empty-state"><i class="fas fa-camera-retro"></i><p>还没有作品，点击右上角「批量添加照片」</p></div>';
+    return;
+  }
+  grid.innerHTML = photos.slice().reverse().map(function(p){
+    var id = p.id;
+    return '<div class="photo-card"><img src="'+p.image+'" alt="'+(p.title||'')+'"><div class="photo-info"><h4>'+p.title+'</h4><p>'+p.desc+'</p><div class="date">'+p.date+'</div></div><div class="photo-actions"><button class="btn-edit" onclick="editPic('+id+')"><i class="fas fa-edit"></i> 编辑</button><button class="btn-del" onclick="delPic('+id+')"><i class="fas fa-trash"></i> 删除</button></div></div>';
+  }).join('');
 }
 
-async function savePhoto(){
-var title=document.getElementById('photoTitle').value.trim();
-var desc=document.getElementById('photoDesc').value.trim();
-var now=new Date();
-var dateStr=now.getFullYear()+'.'+String(now.getMonth()+1).padStart(2,'0')+'.'+String(now.getDate()).padStart(2,'0');
-
-if(editingId!==null){
-var photos=await getPhotos();
-var p=photos.find(function(ph){return ph.id===editingId});
-if(p){
-await updatePhoto(editingId,{title:title||p.title,desc:desc||p.desc,image:p.image,date:p.date})
-}
-}else{
-if(batchFiles.length===0){alert('请选择至少一张照片');return}
-document.getElementById('btnSubmit').textContent='保存中...';
-document.getElementById('btnSubmit').disabled=true;
-var toAdd=batchFiles.map(function(f){return{title:title||f.filename,desc:desc||'',image:f.dataUrl,date:dateStr}});
-try{
-await addPhotos(toAdd);
-}catch(e){
-alert('保存失败：'+e.message);
-document.getElementById('btnSubmit').textContent='保存全部 ('+batchFiles.length+'张)';
-document.getElementById('btnSubmit').disabled=false;
-return
-}
-}
-await renderPhotos();
-closeEditor();
-window.dispatchEvent(new Event('photoUpdated'))
+function refresh(){
+  loadAll(function(err, photos){
+    if(err){ console.error(err); return; }
+    render(photos);
+  });
 }
 
-async function deletePhoto(id){
-if(!confirm('确定删除这张照片？'))return;
-await deletePhotoDB(id);
-await renderPhotos()
+// ====== File handling ======
+function onFiles(input){
+  var files = Array.from(input.files);
+  if(files.length===0) return;
+  var loaded=0;
+  batchDataUrls = [];
+  files.forEach(function(file){
+    var reader = new FileReader();
+    reader.onload = function(e){
+      shrink(e.target.result, 1200, function(err, compressed){
+        batchDataUrls.push(compressed);
+        loaded++;
+        if(loaded===files.length) showBatchPreview();
+      });
+    };
+    reader.readAsDataURL(file);
+  });
+  input.value='';
 }
 
-// 拖拽上传
-var uploadArea=document.getElementById('fileUploadArea');
-if(uploadArea){
-uploadArea.addEventListener('dragover',function(e){e.preventDefault();this.style.borderColor='var(--red)';this.style.background='rgba(220,20,60,0.06)'});
-uploadArea.addEventListener('dragleave',function(e){e.preventDefault();this.style.borderColor='rgba(220,20,60,0.2)';this.style.background=''});
-uploadArea.addEventListener('drop',function(e){e.preventDefault();this.style.borderColor='rgba(220,20,60,0.2)';this.style.background='';var dt=e.dataTransfer;if(dt.files.length>0){var inp=document.getElementById('photoFile');inp.files=dt.files;handleFile(inp)}})
+function showBatchPreview(){
+  var el = document.getElementById('batchPreview');
+  var n = batchDataUrls.length;
+  if(n===0){ el.innerHTML=''; return; }
+  var html = '<div class="batch-count">已选择 <strong>'+n+'</strong> 张照片（点击缩略图可移除）</div><div class="batch-preview-grid">';
+  for(var i=0;i<n;i++){
+    html+='<div class="thumb selected" onclick="removeBatch('+i+')"><img src="'+batchDataUrls[i]+'"><div class="thumb-check"><i class="fas fa-times"></i></div></div>';
+  }
+  html+='</div>';
+  el.innerHTML=html;
+  document.getElementById('btnSubmit').textContent='保存全部 ('+n+'张)';
 }
 
-document.getElementById('modalOverlay').addEventListener('click',function(e){if(e.target===this)closeEditor()});
-document.addEventListener('keydown',function(e){if(e.key==='Escape')closeEditor()});
+function removeBatch(i){ batchDataUrls.splice(i,1); showBatchPreview(); }
 
-var backTop=document.getElementById('backTop');
-window.addEventListener('scroll',function(){backTop.classList.toggle('visible',window.scrollY>400)});
-backTop.addEventListener('click',function(){window.scrollTo({top:0,behavior:'smooth'})});
-window.addEventListener('load',function(){setTimeout(function(){var el=document.getElementById('nervLoader');if(el)el.classList.add('hidden')},600)});
-
-// 实时更新按钮文字
-var origOpenEditor=openEditor;
-openEditor=function(id){
-origOpenEditor(id);
-var btn=document.getElementById('btnSubmit');
-if(id===undefined||id===-1){
-var updater=setInterval(function(){
-if(!document.getElementById('modalOverlay').classList.contains('active')){clearInterval(updater);return}
-btn.textContent='保存全部 ('+batchFiles.length+'张)'
-},300)
+// ====== Modal ======
+function openBatch(){
+  editId = null;
+  batchDataUrls = [];
+  document.getElementById('batchPreview').innerHTML='';
+  document.getElementById('photoFile').value='';
+  document.getElementById('photoTitle').value='';
+  document.getElementById('photoDesc').value='';
+  document.getElementById('fileUploadArea').style.display='block';
+  document.getElementById('modalTitle').innerHTML='<span>■</span> 批量添加照片';
+  document.getElementById('btnSubmit').textContent='保存全部 (0张)';
+  document.getElementById('btnSubmit').disabled=false;
+  saveLocked=false;
+  document.getElementById('modalOverlay').classList.add('active');
 }
-};
 
-renderPhotos();
+function editPic(id){
+  if(!id) return;
+  editId = id;
+  batchDataUrls = [];
+  document.getElementById('batchPreview').innerHTML='';
+  document.getElementById('photoFile').value='';
+  document.getElementById('fileUploadArea').style.display='none';
+  document.getElementById('modalTitle').innerHTML='<span>■</span> 编辑照片';
+  document.getElementById('btnSubmit').textContent='保存修改';
+  document.getElementById('btnSubmit').disabled=false;
+  saveLocked=false;
+  loadAll(function(err, photos){
+    if(err){ alert('加载失败'); return; }
+    var p = photos.find(function(ph){ return ph.id===id; });
+    if(!p) return;
+    document.getElementById('photoTitle').value = p.title||'';
+    document.getElementById('photoDesc').value = p.desc||'';
+    document.getElementById('batchPreview').innerHTML='<div class="batch-preview-grid"><div class="thumb selected"><img src="'+p.image+'"></div></div>';
+  });
+  document.getElementById('modalOverlay').classList.add('active');
+}
+
+function closeModal(){
+  document.getElementById('modalOverlay').classList.remove('active');
+  editId = null;
+  batchDataUrls = [];
+  saveLocked = false;
+  document.getElementById('fileUploadArea').style.display='block';
+}
+
+// ====== Save ======
+function doSave(){
+  if(saveLocked){ return; }
+  var title = document.getElementById('photoTitle').value.trim();
+  var desc = document.getElementById('photoDesc').value.trim();
+  var now = new Date();
+  var ds = now.getFullYear()+'.'+String(now.getMonth()+1).padStart(2,'0')+'.'+String(now.getDate()).padStart(2,'0');
+
+  if(editId !== null){
+    // Edit mode
+    loadAll(function(err, photos){
+      if(err){ alert('加载失败:'+err); return; }
+      var found = photos.find(function(ph){ return ph.id===editId; });
+      if(!found){ alert('未找到该照片'); return; }
+      updateOne(editId, {title:title||found.title, desc:desc||found.desc, image:found.image, date:found.date}, function(err){
+        if(err){ alert('保存失败:'+err); return; }
+        closeModal();
+        refresh();
+      });
+    });
+  } else {
+    // Batch mode
+    if(batchDataUrls.length===0){ alert('请先选择照片'); return; }
+    saveLocked = true;
+    document.getElementById('btnSubmit').textContent = '保存中...';
+    document.getElementById('btnSubmit').disabled = true;
+    var items = batchDataUrls.map(function(url, i){
+      return { title: title||('照片'+(i+1)), desc: desc||'', image: url, date: ds };
+    });
+    saveAll(items, function(err){
+      saveLocked = false;
+      if(err){ alert('保存失败: '+err.message); document.getElementById('btnSubmit').textContent='保存全部 ('+batchDataUrls.length+'张)'; document.getElementById('btnSubmit').disabled=false; return; }
+      closeModal();
+      refresh();
+    });
+  }
+}
+
+// ====== Delete ======
+function delPic(id){
+  if(!confirm('确定删除这张照片？')) return;
+  deleteOne(id, function(err){
+    if(err){ alert('删除失败'); return; }
+    refresh();
+  });
+}
+
+// ====== Drag & Drop ======
+var ua = document.getElementById('fileUploadArea');
+if(ua){
+  ua.addEventListener('dragover',function(e){ e.preventDefault(); this.style.borderColor='var(--red)'; this.style.background='rgba(220,20,60,0.06)'; });
+  ua.addEventListener('dragleave',function(e){ e.preventDefault(); this.style.borderColor='rgba(220,20,60,0.2)'; this.style.background=''; });
+  ua.addEventListener('drop',function(e){
+    e.preventDefault();
+    this.style.borderColor='rgba(220,20,60,0.2)';
+    this.style.background='';
+    var inp = document.getElementById('photoFile');
+    var dt = e.dataTransfer;
+    if(dt.files.length>0){ inp.files = dt.files; onFiles(inp); }
+  });
+}
+
+document.getElementById('modalOverlay').addEventListener('click',function(e){ if(e.target===this) closeModal(); });
+document.addEventListener('keydown',function(e){ if(e.key==='Escape') closeModal(); });
+
+var bt = document.getElementById('backTop');
+window.addEventListener('scroll',function(){ bt.classList.toggle('visible', window.scrollY>400); });
+bt.addEventListener('click',function(){ window.scrollTo({top:0,behavior:'smooth'}); });
+window.addEventListener('load',function(){ setTimeout(function(){ var el=document.getElementById('nervLoader'); if(el)el.classList.add('hidden'); },600); });
+
+// Start
+refresh();
 </script>
 </body>
 </html>
