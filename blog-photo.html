@@ -113,7 +113,7 @@ body{font-family:var(--font);background:#111118;color:var(--text);font-size:28px
 <label>选择照片（支持多选）</label>
 <div class="file-upload" id="fileUploadArea" onclick="document.getElementById('photoFile').click()">
 <i class="fas fa-cloud-upload-alt"></i><span>点击选择照片 / 拖拽到此处</span>
-<input type="file" id="photoFile" accept="image/*" multiple onchange="handleFile(this)" style="display:none">
+<input type="file" id="photoFile" accept="image/*" multiple onchange="onFiles(this)" style="display:none">
 </div>
 <div id="batchPreview" style="margin-top:12px"></div>
 </div>
