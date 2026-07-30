@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>少女前线 | Macmillan141</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><polygon points=%2250,5 95,27 95,73 50,95 5,73 5,27%22 fill=%22%230a0a0f%22 stroke=%22%23dc143c%22 stroke-width=%223%22/><text x=%2250%22 y=%2265%22 text-anchor=%22middle%22 fill=%22%23dc143c%22 font-size=%2250%22 font-family=%22serif%22>⬡</text></svg>">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--red:#dc143c;--gold:#ffd700;--dark:#0a0a0f;--text:#e0d0d0;--dim:#bbb;--bg-glass:rgba(12,12,22,0.35);--glass-border:rgba(220,20,60,0.12);--font:'STFangsong','FangSong','仿宋',serif;--font-mono:'Courier New',monospace}
+body{font-family:var(--font);background:#111118;color:var(--text);font-size:28px;line-height:1.85;min-height:100vh}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:var(--dark)}::-webkit-scrollbar-thumb{background:var(--red);border-radius:3px}
+.bg-asuka{position:fixed;top:0;left:0;width:100%;height:100%;z-index:-3;background:url('asuka.png') center/cover no-repeat;filter:brightness(0.45) saturate(1.05)}
+.bg-gradient{position:fixed;top:0;left:0;width:100%;height:100%;z-index:-2;background:radial-gradient(ellipse at 30% 20%,rgba(220,20,60,0.06),transparent 55%),radial-gradient(ellipse at 70% 80%,rgba(0,255,65,0.02),transparent 50%),linear-gradient(180deg,rgba(6,6,12,0.1),rgba(6,6,12,0.55))}
+.container{max-width:900px;margin:0 auto;padding:24px;position:relative;z-index:1}
+
+.topbar{display:flex;align-items:center;gap:14px;margin-bottom:30px;background:var(--bg-glass);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-radius:16px;padding:18px 24px;border:1px solid var(--glass-border)}
+.back-link{color:var(--red);text-decoration:none;font-size:22px;transition:all 0.3s}
+.back-link:hover{color:#fff}
+.page-title{font-size:1.5em;color:#fff;letter-spacing:2px}
+.page-title span{color:var(--red)}
+
+.card{background:var(--bg-glass);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-radius:20px;padding:36px;margin-bottom:24px;border:1px solid var(--glass-border);position:relative;overflow:hidden}
+.card::before{content:'';position:absolute;top:0;left:0;width:100%;height:2px;background:linear-gradient(90deg,transparent,var(--red),transparent)}
+.card h2{font-size:1em;color:#fff;margin-bottom:16px;letter-spacing:2px}
+.card h2::before{content:'⬡ ';color:var(--red)}
+.card p{color:var(--dim);margin-bottom:12px;font-size:0.65em;line-height:2}
+.card strong{color:var(--text)}
+.card .highlight{color:var(--gold);font-weight:bold}
+
+/* Timeline */
+.timeline{position:relative;padding-left:30px}
+.timeline::before{content:'';position:absolute;left:8px;top:0;bottom:0;width:2px;background:var(--red);opacity:0.3}
+.timeline-item{position:relative;margin-bottom:20px;padding-left:10px}
+.timeline-item::before{content:'';position:absolute;left:-26px;top:8px;width:10px;height:10px;background:var(--red);border-radius:50%}
+.timeline-item .year{color:var(--red);font-family:var(--font-mono);font-size:0.4em;letter-spacing:2px;margin-bottom:4px}
+.timeline-item .desc{color:var(--dim);font-size:0.5em}
+
+/* Honor list */
+.honor-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-top:12px}
+.honor-item{padding:12px 16px;background:rgba(220,20,60,0.06);border:1px solid var(--glass-border);border-radius:8px;font-size:0.5em;color:var(--text);display:flex;align-items:center;gap:8px}
+.honor-item .trophy{color:var(--gold);font-size:1.2em}
+
+.cover-img{width:100%;max-height:350px;object-fit:cover;border-radius:12px;margin-bottom:20px;border:1px solid var(--glass-border)}
+
+#nervLoader{position:fixed;top:0;left:0;width:100%;height:100%;background:#06060e;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity 0.6s,visibility 0.6s}
+#nervLoader.hidden{opacity:0;visibility:hidden;pointer-events:none}
+#nervLoader .hex{font-size:80px;color:var(--red);animation:loaderPulse 1.5s ease-in-out infinite}
+@keyframes loaderPulse{0%,100%{opacity:0.3;transform:scale(0.95)}50%{opacity:1;transform:scale(1.05)}}
+#nervLoader .loader-text{margin-top:20px;font-family:var(--font-mono);color:var(--red);letter-spacing:6px;font-size:18px;animation:loaderBlink 0.8s step-end infinite}
+@keyframes loaderBlink{0%,100%{opacity:1}50%{opacity:0}}
+#nervLoader .loader-sub{color:var(--dim);font-size:11px;letter-spacing:3px;margin-top:8px;font-family:var(--font-mono)}
+#nervLoader .loader-bar{width:200px;height:2px;background:rgba(255,255,255,0.05);margin-top:24px;border-radius:1px;overflow:hidden}
+#nervLoader .loader-bar-fill{height:100%;background:var(--red);width:0;animation:loaderBar 0.8s ease-out forwards}
+@keyframes loaderBar{0%{width:0}60%{width:85%}100%{width:100%}}
+
+#backTop{position:fixed;bottom:80px;right:20px;z-index:998;width:40px;height:40px;background:rgba(220,20,60,0.15);border:1px solid var(--red);color:var(--red);border-radius:8px;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:all 0.3s}
+#backTop.visible{opacity:1;pointer-events:auto}
+#backTop:hover{background:var(--red);color:#fff}
+
+.footer{text-align:center;padding:30px;color:var(--dim);font-size:14px;letter-spacing:2px}
+.footer .accent{color:var(--red)}
+
+@media(max-width:768px){.container{padding:10px}.card{padding:24px 16px}.honor-list{grid-template-columns:1fr}}
+
+#navBack{position:fixed;top:20px;left:20px;z-index:998;width:44px;height:44px;background:rgba(220,20,60,0.12);border:1px solid var(--red);color:var(--red);border-radius:8px;cursor:pointer;font-size:20px;display:flex;align-items:center;justify-content:center;transition:all 0.3s;text-decoration:none}
+#navBack:hover{background:var(--red);color:#fff;box-shadow:0 0 15px rgba(220,20,60,0.3)}
+
+</style>
+</head>
+<body>
+<a href="index.html" id="navBack" title="Home">←</a>
+<div id="nervLoader"><div class="hex">⬡</div><div class="loader-text">NERV TERMINAL</div><div class="loader-sub">SYSTEM BOOT SEQUENCE</div><div class="loader-bar"><div class="loader-bar-fill"></div></div></div>
+<div class="bg-asuka"></div><div class="bg-gradient"></div>
+<div class="container">
+<div class="topbar"><a href="index.html" class="back-link"><i class="fas fa-arrow-left"></i></a><div class="page-title"><span>少女前线</span></div></div>
+
+<img class="cover-img" src="SNQX.jpg" alt="Girls Frontline">
+
+<div class="card">
+<h2>游戏简介</h2>
+<p>《<strong>少女前线</strong>》（Girls' Frontline）是由上海散爆网络（MICA Team）开发的一款<strong>战术策略养成手游</strong>，于2016年在中国大陆上线。</p>
+<p>游戏背景设定在近未来，第三次世界大战后，人类大量使用<strong>战术人形</strong>（T-Doll）替代人类士兵。玩家扮演一名<strong>指挥官</strong>，隶属于私人军事承包商<strong>格里芬与克鲁格</strong>（Griffin & Kryuger），指挥战术人形小队执行各种任务。</p>
+<p>随着剧情推进，指挥官将逐步揭开战术人形背后的秘密，以及一个庞大阴谋——这一切都与一个名为<strong>「帕拉迪斯」</strong>的组织和被称为<strong>「伞」</strong>的病毒有关。</p>
+<p>少女前线最独特的地方在于，它用<strong>枪械娘化</strong>的外壳，讲述了一个极其黑暗、硬核的军事科幻故事。</p>
+</div>
+
+<div class="card">
+<h2>核心玩法</h2>
+<p><strong>战术棋盘</strong> — 在方格地图上部署梯队，规划行进路线，占领节点。每回合根据行动点数进行部署和移动。</p>
+<p><strong>阵型系统</strong> — 每支梯队由5名战术人形组成3x3阵型，不同位置提供不同属性加成。阵型搭配是战斗的核心策略。</p>
+<p><strong>枪械分类</strong> — HG（手枪）、SMG（冲锋枪）、RF（步枪）、AR（突击步枪）、MG（机枪）、SG（霰弹枪），各有优劣和克制关系。</p>
+<p><strong>养成系统</strong> — 人形可通过强化、扩编、校准装备、妖精支援等方式提升战力。重度策略玩家可深挖最大化输出。</p>
+</div>
+
+<div class="card">
+<h2>为什么喜欢少前</h2>
+<p>少女前线最打动我的，是它在美少女外表下的硬核内核。剧情不卖萌不讨好，而是直面<strong>战争、牺牲、存在意义</strong>等沉重主题。</p>
+<p>游戏文案水准极高，很多章节的剧情完全可以当科幻小说来读。角色塑造立体——她们不只是枪械的化身，每一个都有独立的性格、记忆和故事。</p>
+<p>它证明了：手游也可以是有深度的艺术作品。<strong>「少女前线，不只是枪娘。」</strong></p>
+</div>
+
+<button id="backTop">▲</button>
+<div class="footer"><span class="accent">Macmillan141</span> · 个人空间</div>
+</div>
+<script>
+var bt=document.getElementById('backTop');window.addEventListener('scroll',function(){bt.classList.toggle('visible',window.scrollY>400)});bt.addEventListener('click',function(){window.scrollTo({top:0,behavior:'smooth'})});
+window.addEventListener('load',function(){setTimeout(function(){document.getElementById('nervLoader').classList.add('hidden')},600)});
+</script>
+</body>
+</html>

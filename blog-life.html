@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>生活杂谈 | Macmillan141</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--red:#dc143c;--orange:#ff6b35;--gold:#ffd700;--dark:#0a0a0f;--text:#e0d0d0;--dim:#bbb;--bg-glass:rgba(12,12,22,0.35);--glass-border:rgba(220,20,60,0.12);--font:'STFangsong','FangSong','仿宋',serif;--font-mono:'Courier New',monospace}
+body{font-family:var(--font);background:var(--dark);color:var(--text);overflow-x:hidden;font-size:28px;line-height:1.85;min-height:100vh}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:var(--dark)}::-webkit-scrollbar-thumb{background:var(--red);border-radius:3px}
+.bg-asuka{position:fixed;top:0;left:0;width:100%;height:100%;z-index:-3;background:url('asuka.png') center/cover no-repeat;filter:brightness(0.45) saturate(1.05)}
+.bg-gradient{position:fixed;top:0;left:0;width:100%;height:100%;z-index:-2;background:radial-gradient(ellipse at 30% 20%,rgba(220,20,60,0.06),transparent 55%),radial-gradient(ellipse at 70% 80%,rgba(0,255,65,0.02),transparent 50%),linear-gradient(180deg,rgba(6,6,12,0.1),rgba(6,6,12,0.55))}
+.container{max-width:1000px;margin:0 auto;padding:20px;position:relative;z-index:1}
+.topbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;margin-bottom:24px;background:var(--bg-glass);backdrop-filter:blur(24px);border-radius:16px;padding:18px 24px;border:1px solid var(--glass-border)}
+.topbar-left{display:flex;align-items:center;gap:14px}
+.back-link{color:var(--red);text-decoration:none;font-size:20px;transition:all 0.3s}
+.back-link:hover{color:#fff}
+.page-title{font-size:1.5em;color:#fff;letter-spacing:2px}
+.page-title span{color:var(--red)}
+.page-sub{color:var(--dim);font-size:12px;letter-spacing:2px;font-family:var(--font-mono)}
+.btn-write{background:var(--red);color:#fff;border:none;padding:10px 24px;border-radius:8px;cursor:pointer;font-size:15px;letter-spacing:2px;font-family:var(--font-mono);transition:all 0.3s}
+.btn-write:hover{background:#ff1a4d;box-shadow:0 0 20px rgba(220,20,60,0.4);transform:translateY(-2px)}
+.btn-write i{margin-right:6px}
+.post-card{background:var(--bg-glass);backdrop-filter:blur(24px);border-radius:16px;padding:28px;margin-bottom:20px;border:1px solid var(--glass-border);transition:all 0.3s;position:relative;overflow:hidden}
+.post-card::before{content:'';position:absolute;top:0;left:0;width:100%;height:2px;background:linear-gradient(90deg,transparent,var(--red),transparent)}
+.post-card:hover{border-color:rgba(220,20,60,0.3);transform:translateY(-2px)}
+.post-header{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;margin-bottom:14px}
+.post-title{font-size:1.25em;color:#fff;letter-spacing:1px;flex:1}
+.post-meta{display:flex;gap:14px;align-items:center;flex-shrink:0}
+.post-date{color:var(--dim);font-size:12px;font-family:var(--font-mono)}
+.post-tags{display:flex;gap:6px;flex-wrap:wrap}
+.post-tag{padding:2px 10px;font-size:10px;border:1px solid var(--glass-border);color:var(--red);border-radius:10px;font-family:var(--font-mono)}
+.post-content{color:var(--dim);line-height:2.2;font-size:20px;white-space:pre-wrap;word-break:break-word}
+.post-content img{max-width:100%;border-radius:8px;margin:12px 0;border:1px solid var(--glass-border)}
+.post-actions{display:flex;gap:10px;margin-top:14px;justify-content:flex-end}
+.btn-edit{background:rgba(220,20,60,0.12);border:1px solid var(--red);color:var(--red);padding:4px 14px;border-radius:6px;cursor:pointer;font-size:11px;letter-spacing:1px;transition:all 0.3s;font-family:var(--font-mono)}
+.btn-edit:hover{background:var(--red);color:#fff}
+.btn-del{background:transparent;border:1px solid var(--glass-border);color:var(--dim);padding:4px 14px;border-radius:6px;cursor:pointer;font-size:11px;letter-spacing:1px;transition:all 0.3s;font-family:var(--font-mono)}
+.btn-del:hover{color:var(--red);border-color:var(--red);background:rgba(220,20,60,0.08)}
+.empty-state{text-align:center;padding:60px 20px;color:var(--dim)}
+.empty-state i{font-size:3em;color:var(--red);margin-bottom:16px;display:block;opacity:0.5}
+.empty-state p{font-size:16px;letter-spacing:1px}
+.modal-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:1000;justify-content:center;align-items:flex-start;padding-top:40px;overflow-y:auto}
+.modal-overlay.active{display:flex}
+.modal{background:rgba(10,10,20,0.85);backdrop-filter:blur(30px);border:1px solid var(--red);border-radius:16px;padding:30px;width:90%;max-width:700px;box-shadow:0 20px 60px rgba(0,0,0,0.5)}
+.modal h3{font-size:1.3em;color:#fff;margin-bottom:20px;letter-spacing:2px}
+.modal h3 span{color:var(--red)}
+.form-group{margin-bottom:16px}
+.form-group label{display:block;color:var(--dim);font-size:12px;letter-spacing:2px;margin-bottom:6px;font-family:var(--font-mono);text-transform:uppercase}
+.form-group input,.form-group textarea{width:100%;padding:12px 14px;background:rgba(255,255,255,0.03);border:1px solid var(--glass-border);color:var(--text);font-size:15px;font-family:var(--font);border-radius:8px;outline:none;transition:all 0.3s;letter-spacing:1px}
+.form-group input:focus,.form-group textarea:focus{border-color:var(--red);box-shadow:0 0 12px rgba(220,20,60,0.1)}
+.form-group textarea{min-height:200px;resize:vertical;line-height:1.8}
+.form-group .hint{font-size:11px;color:var(--dim);margin-top:4px}
+.form-actions{display:flex;gap:12px;justify-content:flex-end;margin-top:20px}
+.btn-cancel{background:transparent;border:1px solid var(--glass-border);color:var(--dim);padding:10px 24px;border-radius:8px;cursor:pointer;font-size:14px;letter-spacing:2px;font-family:var(--font-mono);transition:all 0.3s}
+.btn-cancel:hover{border-color:var(--red);color:var(--red)}
+.btn-submit{background:var(--red);color:#fff;border:none;padding:10px 28px;border-radius:8px;cursor:pointer;font-size:14px;letter-spacing:2px;font-family:var(--font-mono);transition:all 0.3s}
+.btn-submit:hover{background:#ff1a4d;box-shadow:0 0 20px rgba(220,20,60,0.4)}
+
+/* File upload area */
+.upload-area{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.upload-area input[type=file]{display:none}
+.upload-label{display:inline-flex;align-items:center;gap:6px;padding:10px 20px;background:rgba(220,20,60,0.12);border:1px dashed var(--red);color:var(--red);border-radius:8px;cursor:pointer;font-size:13px;letter-spacing:1px;transition:all 0.3s;font-family:var(--font-mono)}
+.upload-label:hover{background:rgba(220,20,60,0.2);border-style:solid}
+.upload-label i{margin-right:4px}
+.upload-preview{max-width:200px;max-height:120px;border-radius:6px;border:1px solid var(--glass-border);display:none}
+.upload-info{font-size:11px;color:var(--dim)}
+
+.footer{text-align:center;padding:30px;color:var(--dim);font-size:13px;letter-spacing:2px;margin-top:20px}
+.footer .accent{color:var(--red)}
+@media(max-width:768px){.container{padding:10px}.post-card{padding:20px 16px}.modal{padding:20px;width:95%}.topbar{flex-direction:column;align-items:flex-start}}
+
+25%{transform:translateY(25vh) rotate(90deg) translateX(30px);opacity:0.4}50%{transform:translateY(50vh) rotate(180deg) translateX(-20px);opacity:0.3}75%{transform:translateY(75vh) rotate(270deg) translateX(25px);opacity:0.2}100%{transform:translateY(105vh) rotate(360deg) translateX(-30px);opacity:0}}
+
+
+10%{opacity:0.6}50%{opacity:0.3}90%{opacity:0.6}100%{transform:translateY(-10vh) scale(1.5);opacity:0}}
+
+
+/* NERV loading screen */
+#nervLoader{position:fixed;top:0;left:0;width:100%;height:100%;background:#06060e;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity 0.6s,visibility 0.6s}
+#nervLoader.hidden{opacity:0;visibility:hidden;pointer-events:none}
+#nervLoader .hex{font-size:80px;color:var(--red);animation:loaderPulse 1.5s ease-in-out infinite}
+@keyframes loaderPulse{0%,100%{opacity:0.3;transform:scale(0.95)}50%{opacity:1;transform:scale(1.05)}}
+#nervLoader .loader-text{margin-top:20px;font-family:var(--font-mono);color:var(--red);letter-spacing:6px;font-size:18px;animation:loaderBlink 0.8s step-end infinite}
+@keyframes loaderBlink{0%,100%{opacity:1}50%{opacity:0}}
+#nervLoader .loader-sub{color:var(--dim);font-size:11px;letter-spacing:3px;margin-top:8px;font-family:var(--font-mono)}
+#nervLoader .loader-bar{width:200px;height:2px;background:rgba(255,255,255,0.05);margin-top:24px;border-radius:1px;overflow:hidden}
+#nervLoader .loader-bar-fill{height:100%;background:var(--red);width:0;animation:loaderBar 0.8s ease-out forwards}
+@keyframes loaderBar{0%{width:0}60%{width:85%}100%{width:100%}}
+
+
+/* Back to top */
+#backTop{position:fixed;bottom:80px;right:20px;z-index:998;width:40px;height:40px;background:rgba(220,20,60,0.15);border:1px solid var(--red);color:var(--red);border-radius:8px;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:all 0.3s}
+#backTop.visible{opacity:1;pointer-events:auto}
+#backTop:hover{background:var(--red);color:#fff}
+
+
+#navBack{position:fixed;top:20px;left:20px;z-index:998;width:44px;height:44px;background:rgba(220,20,60,0.12);border:1px solid var(--red);color:var(--red);border-radius:8px;cursor:pointer;font-size:20px;display:flex;align-items:center;justify-content:center;transition:all 0.3s;text-decoration:none}
+#navBack:hover{background:var(--red);color:#fff;box-shadow:0 0 15px rgba(220,20,60,0.3)}
+
+</style>
+</head>
+<body>
+<a href="index.html" id="navBack" title="Home">←</a>
+<div id="nervLoader">
+<div class="hex">⬡</div>
+<div class="loader-text">NERV TERMINAL</div>
+<div class="loader-sub">SYSTEM BOOT SEQUENCE</div>
+<div class="loader-bar"><div class="loader-bar-fill"></div></div>
+</div>
+
+<div class="bg-asuka"></div><div class="bg-gradient"></div>
+
+
+<div class="container">
+<div class="topbar">
+<div class="topbar-left">
+<a href="index.html" class="back-link"><i class="fas fa-arrow-left"></i></a>
+<div><div class="page-title"><span>生活杂谈</span></div><div class="page-sub">/// LIFE_RECORD</div></div>
+</div>
+<button class="btn-write" onclick="openEditor(-1)"><i class="fas fa-pen"></i> 写文章</button>
+</div>
+<div id="postsContainer"></div>
+<div class="empty-state" id="emptyState"><i class="fas fa-feather-alt"></i><p>还没有文章，点击右上角「写文章」开始创作</p></div>
+<div class="modal-overlay" id="modalOverlay">
+<div class="modal">
+<h3 id="modalTitle"><span>⬡</span> 写文章</h3>
+<div class="form-group"><label>标题</label><input type="text" id="postTitle" placeholder="输入文章标题..."></div>
+<div class="form-group"><label>内容</label><textarea id="postContent" placeholder="开始写作..."></textarea></div>
+<div class="form-group">
+<label>封面图片</label>
+<div class="upload-area">
+<label class="upload-label" for="coverFileInput"><i class="fas fa-image"></i> 选择本地图片</label>
+<input type="file" id="coverFileInput" accept="image/*" onchange="handleCoverFile(this)">
+<img class="upload-preview" id="coverPreview">
+<span class="upload-info" id="coverInfo"></span>
+</div>
+<div class="hint">或粘贴网络图片链接：</div>
+<input type="text" id="postImage" placeholder="https://example.com/image.jpg" style="margin-top:6px">
+</div>
+<div class="form-group"><label>标签（用逗号分隔）</label><input type="text" id="postTags" placeholder="EVA, 动漫, 杂谈"></div>
+<div class="form-actions">
+<button class="btn-cancel" onclick="closeEditor()">取消</button>
+<button class="btn-submit" id="btnSubmit" onclick="savePost()">发布文章</button>
+</div>
+</div>
+</div>
+<button id="backTop" title="Back to top">▲</button>
+
+<div class="footer"><span class="accent">Macmillan141</span> · 个人空间 · 生活杂谈</div>
+</div>
+<script>
+var STORAGE_KEY = "blog_life_posts";
+var defaultPosts = [{"title": "梅西加盟迈阿密国际：传奇新篇章", "content": "当梅西宣布加盟迈阿密国际时，我反复确认了好几遍——不是沙特，不是回归巴萨，而是美国。\n\n有人说这是\"养老\"，但看看他在迈阿密的表现：进球、助攻、冠军，一样不少。作为从巴萨时期就开始看梅西的球迷，我觉得这反而是一个完美的选择。在职业生涯的黄昏，远离欧洲的喧嚣，纯粹地享受足球的快乐。", "image": "messi.jpg", "tags": ["梅西", "足球", "迈阿密"], "date": "2025.06.15"}, {"title": "足球与物理：为什么梅西的任意球那么准？", "content": "作为理科生，我忍不住用物理来分析梅西的任意球。马格努斯效应——当球旋转时，球两侧的空气流速不同，产生压力差，使球在空中弯曲。\n\n梅西的任意球之所以难以防守，关键在于他精准控制了球的旋转轴和初速度。这不是魔法，是完美的物理。当然，需要数千小时的练习。", "image": "", "tags": ["足球", "物理", "梅西"], "date": "2025.02.18"}];
+var editingIdx = -1;
+var coverDataUrl = '';
+
+function getPosts(){
+var d = localStorage.getItem(STORAGE_KEY);
+if(d){try{return JSON.parse(d)}catch(e){}}
+return JSON.parse(JSON.stringify(defaultPosts));
+}
+function savePosts(posts){localStorage.setItem(STORAGE_KEY, JSON.stringify(posts))}
+
+function renderPosts(){
+var posts = getPosts();
+var c = document.getElementById('postsContainer');
+var e = document.getElementById('emptyState');
+if(posts.length===0){c.innerHTML='';e.style.display='block';return}
+e.style.display='none';
+c.innerHTML = posts.slice().reverse().map(function(post,idx){
+var ri = posts.length-1-idx;
+var imgH = post.image ? '<img src="'+post.image+'" alt="" onerror="this.style.display=\'none\'">' : '';
+var tagsH = (post.tags||[]).map(function(t){return '<span class="post-tag">'+t+'</span>'}).join('');
+return '<div class="post-card"><div class="post-header"><div class="post-title">'+post.title+'</div><div class="post-meta"><span class="post-date">'+post.date+'</span></div></div>'+imgH+'<div class="post-content">'+post.content+'</div><div class="post-tags" style="margin-top:10px">'+tagsH+'</div><div class="post-actions"><button class="btn-edit" onclick="openEditor('+ri+')"><i class="fas fa-edit"></i> 编辑</button><button class="btn-del" onclick="deletePost('+ri+')"><i class="fas fa-trash"></i> 删除</button></div></div>';
+}).join('')
+}
+
+function handleCoverFile(input){
+var file = input.files[0];
+if(!file) return;
+if(file.size > 5*1024*1024){alert('图片不能超过5MB');input.value='';return}
+var reader = new FileReader();
+reader.onload = function(e){
+coverDataUrl = e.target.result;
+document.getElementById('coverPreview').src = coverDataUrl;
+document.getElementById('coverPreview').style.display = 'block';
+document.getElementById('coverInfo').textContent = file.name + ' (' + (file.size/1024).toFixed(0) + 'KB)';
+document.getElementById('postImage').value = '[本地图片]';
+};
+reader.readAsDataURL(file)
+}
+
+function openEditor(idx){
+editingIdx = idx;
+coverDataUrl = '';
+document.getElementById('coverPreview').style.display = 'none';
+document.getElementById('coverInfo').textContent = '';
+document.getElementById('coverFileInput').value = '';
+document.getElementById('modalOverlay').classList.add('active');
+if(idx >= 0){
+var posts = getPosts();
+var p = posts[idx];
+document.getElementById('modalTitle').innerHTML = '<span>⬡</span> 编辑文章';
+document.getElementById('btnSubmit').textContent = '保存修改';
+document.getElementById('postTitle').value = p.title;
+document.getElementById('postContent').value = p.content;
+// Check if image is base64 (local) or URL
+if(p.image && p.image.startsWith('data:')){
+coverDataUrl = p.image;
+document.getElementById('coverPreview').src = p.image;
+document.getElementById('coverPreview').style.display = 'block';
+document.getElementById('coverInfo').textContent = '[本地图片]';
+document.getElementById('postImage').value = '[本地图片]';
+}else{
+document.getElementById('postImage').value = p.image || '';
+}
+document.getElementById('postTags').value = (p.tags||[]).join(', ');
+}else{
+document.getElementById('modalTitle').innerHTML = '<span>⬡</span> 写文章';
+document.getElementById('btnSubmit').textContent = '发布文章';
+document.getElementById('postTitle').value = '';
+document.getElementById('postContent').value = '';
+document.getElementById('postImage').value = '';
+document.getElementById('postTags').value = '';
+}
+document.getElementById('postTitle').focus()
+}
+
+function closeEditor(){
+document.getElementById('modalOverlay').classList.remove('active');
+editingIdx = -1;
+coverDataUrl = ''
+}
+
+function savePost(){
+var title = document.getElementById('postTitle').value.trim();
+var content = document.getElementById('postContent').value.trim();
+var urlImage = document.getElementById('postImage').value.trim();
+var tagsStr = document.getElementById('postTags').value.trim();
+if(!title){alert('请输入标题');return}
+if(!content){alert('请输入内容');return}
+
+// Use local image if selected, otherwise use URL
+var image = coverDataUrl || (urlImage && urlImage !== '[本地图片]' ? urlImage : '');
+
+// Auto-detect image URLs in content
+content = content.replace(/(https?:\/\/\S+\.(jpg|jpeg|png|gif|webp)(\?\S*)?)/gi, '<img src="" alt="">');
+
+var tags = tagsStr ? tagsStr.split(/[,，]/).map(function(t){return t.trim()}).filter(Boolean) : [];
+var now = new Date();
+var dateStr = now.getFullYear()+'.'+String(now.getMonth()+1).padStart(2,'0')+'.'+String(now.getDate()).padStart(2,'0');
+var posts = getPosts();
+var post = {title:title, content:content, image:image, tags:tags, date:dateStr};
+if(editingIdx >= 0){
+post.date = posts[editingIdx].date;
+posts[editingIdx] = post
+}else{
+posts.push(post)
+}
+savePosts(posts);
+renderPosts();
+
+// Back to top
+var backTop=document.getElementById("backTop");
+window.addEventListener("scroll",function(){backTop.classList.toggle("visible",window.scrollY>400)});
+backTop.addEventListener("click",function(){window.scrollTo({top:0,behavior:"smooth"})});
+
+// Hide loader
+window.addEventListener("load",function(){setTimeout(function(){document.getElementById("nervLoader").classList.add("hidden")},1200)});
+closeEditor()
+}
+
+function deletePost(idx){
+if(!confirm('确定删除这篇文章？'))return;
+var posts = getPosts();
+posts.splice(idx,1);
+savePosts(posts);
+renderPosts()
+}
+
+document.getElementById('modalOverlay').addEventListener('click',function(e){if(e.target===this)closeEditor()});
+document.addEventListener('keydown',function(e){if(e.key==='Escape')closeEditor()});
+renderPosts();
+
+// Back to top
+var backTop=document.getElementById("backTop");
+window.addEventListener("scroll",function(){backTop.classList.toggle("visible",window.scrollY>400)});
+backTop.addEventListener("click",function(){window.scrollTo({top:0,behavior:"smooth"})});
+
+// Hide loader
+window.addEventListener("load",function(){setTimeout(function(){document.getElementById("nervLoader").classList.add("hidden")},1200)});
+</script>
+</body>
+</html>

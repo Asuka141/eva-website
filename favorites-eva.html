@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>新世纪福音战士 | Macmillan141</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><polygon points=%2250,5 95,27 95,73 50,95 5,73 5,27%22 fill=%22%230a0a0f%22 stroke=%22%23dc143c%22 stroke-width=%223%22/><text x=%2250%22 y=%2265%22 text-anchor=%22middle%22 fill=%22%23dc143c%22 font-size=%2250%22 font-family=%22serif%22>⬡</text></svg>">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--red:#dc143c;--gold:#ffd700;--dark:#0a0a0f;--text:#e0d0d0;--dim:#bbb;--bg-glass:rgba(12,12,22,0.35);--glass-border:rgba(220,20,60,0.12);--font:'STFangsong','FangSong','仿宋',serif;--font-mono:'Courier New',monospace}
+body{font-family:var(--font);background:#111118;color:var(--text);font-size:28px;line-height:1.85;min-height:100vh}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:var(--dark)}::-webkit-scrollbar-thumb{background:var(--red);border-radius:3px}
+.bg-asuka{position:fixed;top:0;left:0;width:100%;height:100%;z-index:-3;background:url('asuka.png') center/cover no-repeat;filter:brightness(0.45) saturate(1.05)}
+.bg-gradient{position:fixed;top:0;left:0;width:100%;height:100%;z-index:-2;background:radial-gradient(ellipse at 30% 20%,rgba(220,20,60,0.06),transparent 55%),radial-gradient(ellipse at 70% 80%,rgba(0,255,65,0.02),transparent 50%),linear-gradient(180deg,rgba(6,6,12,0.1),rgba(6,6,12,0.55))}
+.container{max-width:900px;margin:0 auto;padding:24px;position:relative;z-index:1}
+
+.topbar{display:flex;align-items:center;gap:14px;margin-bottom:30px;background:var(--bg-glass);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-radius:16px;padding:18px 24px;border:1px solid var(--glass-border)}
+.back-link{color:var(--red);text-decoration:none;font-size:22px;transition:all 0.3s}
+.back-link:hover{color:#fff}
+.page-title{font-size:1.5em;color:#fff;letter-spacing:2px}
+.page-title span{color:var(--red)}
+
+.card{background:var(--bg-glass);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-radius:20px;padding:36px;margin-bottom:24px;border:1px solid var(--glass-border);position:relative;overflow:hidden}
+.card::before{content:'';position:absolute;top:0;left:0;width:100%;height:2px;background:linear-gradient(90deg,transparent,var(--red),transparent)}
+.card h2{font-size:1em;color:#fff;margin-bottom:16px;letter-spacing:2px}
+.card h2::before{content:'⬡ ';color:var(--red)}
+.card p{color:var(--dim);margin-bottom:12px;font-size:0.65em;line-height:2}
+.card strong{color:var(--text)}
+.card .highlight{color:var(--gold);font-weight:bold}
+
+/* Timeline */
+.timeline{position:relative;padding-left:30px}
+.timeline::before{content:'';position:absolute;left:8px;top:0;bottom:0;width:2px;background:var(--red);opacity:0.3}
+.timeline-item{position:relative;margin-bottom:20px;padding-left:10px}
+.timeline-item::before{content:'';position:absolute;left:-26px;top:8px;width:10px;height:10px;background:var(--red);border-radius:50%}
+.timeline-item .year{color:var(--red);font-family:var(--font-mono);font-size:0.4em;letter-spacing:2px;margin-bottom:4px}
+.timeline-item .desc{color:var(--dim);font-size:0.5em}
+
+/* Honor list */
+.honor-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-top:12px}
+.honor-item{padding:12px 16px;background:rgba(220,20,60,0.06);border:1px solid var(--glass-border);border-radius:8px;font-size:0.5em;color:var(--text);display:flex;align-items:center;gap:8px}
+.honor-item .trophy{color:var(--gold);font-size:1.2em}
+
+.cover-img{width:100%;max-height:350px;object-fit:cover;border-radius:12px;margin-bottom:20px;border:1px solid var(--glass-border)}
+
+#nervLoader{position:fixed;top:0;left:0;width:100%;height:100%;background:#06060e;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity 0.6s,visibility 0.6s}
+#nervLoader.hidden{opacity:0;visibility:hidden;pointer-events:none}
+#nervLoader .hex{font-size:80px;color:var(--red);animation:loaderPulse 1.5s ease-in-out infinite}
+@keyframes loaderPulse{0%,100%{opacity:0.3;transform:scale(0.95)}50%{opacity:1;transform:scale(1.05)}}
+#nervLoader .loader-text{margin-top:20px;font-family:var(--font-mono);color:var(--red);letter-spacing:6px;font-size:18px;animation:loaderBlink 0.8s step-end infinite}
+@keyframes loaderBlink{0%,100%{opacity:1}50%{opacity:0}}
+#nervLoader .loader-sub{color:var(--dim);font-size:11px;letter-spacing:3px;margin-top:8px;font-family:var(--font-mono)}
+#nervLoader .loader-bar{width:200px;height:2px;background:rgba(255,255,255,0.05);margin-top:24px;border-radius:1px;overflow:hidden}
+#nervLoader .loader-bar-fill{height:100%;background:var(--red);width:0;animation:loaderBar 0.8s ease-out forwards}
+@keyframes loaderBar{0%{width:0}60%{width:85%}100%{width:100%}}
+
+#backTop{position:fixed;bottom:80px;right:20px;z-index:998;width:40px;height:40px;background:rgba(220,20,60,0.15);border:1px solid var(--red);color:var(--red);border-radius:8px;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:all 0.3s}
+#backTop.visible{opacity:1;pointer-events:auto}
+#backTop:hover{background:var(--red);color:#fff}
+
+.footer{text-align:center;padding:30px;color:var(--dim);font-size:14px;letter-spacing:2px}
+.footer .accent{color:var(--red)}
+
+@media(max-width:768px){.container{padding:10px}.card{padding:24px 16px}.honor-list{grid-template-columns:1fr}}
+
+#navBack{position:fixed;top:20px;left:20px;z-index:998;width:44px;height:44px;background:rgba(220,20,60,0.12);border:1px solid var(--red);color:var(--red);border-radius:8px;cursor:pointer;font-size:20px;display:flex;align-items:center;justify-content:center;transition:all 0.3s;text-decoration:none}
+#navBack:hover{background:var(--red);color:#fff;box-shadow:0 0 15px rgba(220,20,60,0.3)}
+
+</style>
+</head>
+<body>
+<a href="index.html" id="navBack" title="Home">←</a>
+<div id="nervLoader"><div class="hex">⬡</div><div class="loader-text">NERV TERMINAL</div><div class="loader-sub">SYSTEM BOOT SEQUENCE</div><div class="loader-bar"><div class="loader-bar-fill"></div></div></div>
+<div class="bg-asuka"></div><div class="bg-gradient"></div>
+<div class="container">
+<div class="topbar"><a href="index.html" class="back-link"><i class="fas fa-arrow-left"></i></a><div class="page-title"><span>新世纪福音战士</span></div></div>
+
+<img class="cover-img" src="EVA.jpg" alt="EVA">
+
+<div class="card">
+<h2>作品简介</h2>
+<p>《<strong>新世纪福音战士</strong>》（Neon Genesis Evangelion）是由<strong>庵野秀明</strong>执导、GAINAX制作的日本动画作品，于1995年10月4日在东京电视台首播，共26集。</p>
+<p>故事发生在2015年，15年前在南极发生的「<strong>第二次冲击</strong>」导致地球气候剧变、人口减半。15年后，神秘的巨大生物「<strong>使徒</strong>」接连来袭，人类唯一的对抗手段是由特务机关<strong>NERV</strong>开发的巨大人形兵器——「<strong>Evangelion</strong>」（EVA）。</p>
+<p>14岁的少年<strong>碇真嗣</strong>被父亲碇源堂召到第三新东京市，被迫驾驶EVA初号机与使徒战斗。随着故事展开，EVA和使徒背后的真相逐渐浮出水面——这远不止是一场人类对抗怪兽的战斗，而是关于<strong>人类补完计划</strong>、生命起源与存在意义的终极探讨。</p>
+<p>这不仅仅是一部机甲动画，更是一部关于<strong>人性、孤独、创伤与连接</strong>的哲学作品。AT力场——「<strong>心之壁</strong>」——象征着每个人内心深处的防御机制：我们渴望被理解，却又本能地将他人推开。</p>
+</div>
+
+<div class="card">
+<h2>主要角色</h2>
+<p><strong>碇真嗣</strong> — EVA初号机驾驶员。内向、敏感、渴望被认可，却又不断逃避。他的成长弧线是整个EVA的核心。</p>
+<p><strong>惣流·明日香·兰格雷</strong> — EVA贰号机驾驶员。骄傲、强势的天才少女，用自信掩盖童年创伤。红色战斗服、金发双马尾，无数粉丝的最爱。</p>
+<p><strong>绫波丽</strong> — EVA零号机驾驶员。沉默寡言、情感淡漠的谜之少女，其身世是EVA最大的谜团之一。</p>
+<p><strong>碇源堂</strong> — NERV司令，真嗣的父亲。为了与亡妻重逢，不惜一切代价推进人类补完计划。</p>
+</div>
+
+<div class="card">
+<h2>时间线</h2>
+<div class="timeline">
+<div class="timeline-item"><div class="year">1995</div><div class="desc">TV版《新世纪福音战士》全26集播出，开创性地将机甲、宗教符号和心理学融合</div></div>
+<div class="timeline-item"><div class="year">1997</div><div class="desc">旧剧场版《Air/真心为你》上映，以极具冲击力的方式完成TV版结局</div></div>
+<div class="timeline-item"><div class="year">2007</div><div class="desc">《福音战士新剧场版：序》上映，开启四部曲重制计划</div></div>
+<div class="timeline-item"><div class="year">2009</div><div class="desc">《福音战士新剧场版：破》上映，故事开始大幅偏离TV版，明日香命运改变</div></div>
+<div class="timeline-item"><div class="year">2012</div><div class="desc">《福音战士新剧场版：Q》上映，故事跳至14年后，风格大变</div></div>
+<div class="timeline-item"><div class="year">2021</div><div class="desc">《福音战士新剧场版：终》上映。「再见，所有的EVA。」25年的传奇落下帷幕</div></div>
+</div>
+</div>
+
+<div class="card">
+<h2>为什么EVA是神作</h2>
+<p>EVA超越了动画的范畴。它用科幻的外壳，包裹了对人类心理最深层的探索。每一个角色都在与自己内心的「使徒」战斗——孤独、恐惧、自我否定、对爱的渴望。</p>
+<p>《Come Sweet Death》响起的那一刻，是所有EVA粉心中永远的烙印。</p>
+<p>即使25年后，EVA提出的问题依然振聋发聩：<strong>我们为什么要活着？如何与他人建立真正的连接？</strong>这或许就是它被称为「神作」的原因。</p>
+</div>
+
+<button id="backTop">▲</button>
+<div class="footer"><span class="accent">Macmillan141</span> · 个人空间</div>
+</div>
+<script>
+var bt=document.getElementById('backTop');window.addEventListener('scroll',function(){bt.classList.toggle('visible',window.scrollY>400)});bt.addEventListener('click',function(){window.scrollTo({top:0,behavior:'smooth'})});
+window.addEventListener('load',function(){setTimeout(function(){document.getElementById('nervLoader').classList.add('hidden')},600)});
+</script>
+</body>
+</html>

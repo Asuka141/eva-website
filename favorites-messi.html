@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>梅西 / 足球 | Macmillan141</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><polygon points=%2250,5 95,27 95,73 50,95 5,73 5,27%22 fill=%22%230a0a0f%22 stroke=%22%23dc143c%22 stroke-width=%223%22/><text x=%2250%22 y=%2265%22 text-anchor=%22middle%22 fill=%22%23dc143c%22 font-size=%2250%22 font-family=%22serif%22>⬡</text></svg>">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--red:#dc143c;--gold:#ffd700;--dark:#0a0a0f;--text:#e0d0d0;--dim:#bbb;--bg-glass:rgba(12,12,22,0.35);--glass-border:rgba(220,20,60,0.12);--font:'STFangsong','FangSong','仿宋',serif;--font-mono:'Courier New',monospace}
+body{font-family:var(--font);background:#111118;color:var(--text);font-size:28px;line-height:1.85;min-height:100vh}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:var(--dark)}::-webkit-scrollbar-thumb{background:var(--red);border-radius:3px}
+.bg-asuka{position:fixed;top:0;left:0;width:100%;height:100%;z-index:-3;background:url('asuka.png') center/cover no-repeat;filter:brightness(0.45) saturate(1.05)}
+.bg-gradient{position:fixed;top:0;left:0;width:100%;height:100%;z-index:-2;background:radial-gradient(ellipse at 30% 20%,rgba(220,20,60,0.06),transparent 55%),radial-gradient(ellipse at 70% 80%,rgba(0,255,65,0.02),transparent 50%),linear-gradient(180deg,rgba(6,6,12,0.1),rgba(6,6,12,0.55))}
+.container{max-width:900px;margin:0 auto;padding:24px;position:relative;z-index:1}
+
+.topbar{display:flex;align-items:center;gap:14px;margin-bottom:30px;background:var(--bg-glass);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-radius:16px;padding:18px 24px;border:1px solid var(--glass-border)}
+.back-link{color:var(--red);text-decoration:none;font-size:22px;transition:all 0.3s}
+.back-link:hover{color:#fff}
+.page-title{font-size:1.5em;color:#fff;letter-spacing:2px}
+.page-title span{color:var(--red)}
+
+.card{background:var(--bg-glass);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-radius:20px;padding:36px;margin-bottom:24px;border:1px solid var(--glass-border);position:relative;overflow:hidden}
+.card::before{content:'';position:absolute;top:0;left:0;width:100%;height:2px;background:linear-gradient(90deg,transparent,var(--red),transparent)}
+.card h2{font-size:1em;color:#fff;margin-bottom:16px;letter-spacing:2px}
+.card h2::before{content:'⬡ ';color:var(--red)}
+.card p{color:var(--dim);margin-bottom:12px;font-size:0.65em;line-height:2}
+.card strong{color:var(--text)}
+.card .highlight{color:var(--gold);font-weight:bold}
+
+/* Timeline */
+.timeline{position:relative;padding-left:30px}
+.timeline::before{content:'';position:absolute;left:8px;top:0;bottom:0;width:2px;background:var(--red);opacity:0.3}
+.timeline-item{position:relative;margin-bottom:20px;padding-left:10px}
+.timeline-item::before{content:'';position:absolute;left:-26px;top:8px;width:10px;height:10px;background:var(--red);border-radius:50%}
+.timeline-item .year{color:var(--red);font-family:var(--font-mono);font-size:0.4em;letter-spacing:2px;margin-bottom:4px}
+.timeline-item .desc{color:var(--dim);font-size:0.5em}
+
+/* Honor list */
+.honor-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-top:12px}
+.honor-item{padding:12px 16px;background:rgba(220,20,60,0.06);border:1px solid var(--glass-border);border-radius:8px;font-size:0.5em;color:var(--text);display:flex;align-items:center;gap:8px}
+.honor-item .trophy{color:var(--gold);font-size:1.2em}
+
+.cover-img{width:100%;max-height:350px;object-fit:cover;border-radius:12px;margin-bottom:20px;border:1px solid var(--glass-border)}
+
+#nervLoader{position:fixed;top:0;left:0;width:100%;height:100%;background:#06060e;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity 0.6s,visibility 0.6s}
+#nervLoader.hidden{opacity:0;visibility:hidden;pointer-events:none}
+#nervLoader .hex{font-size:80px;color:var(--red);animation:loaderPulse 1.5s ease-in-out infinite}
+@keyframes loaderPulse{0%,100%{opacity:0.3;transform:scale(0.95)}50%{opacity:1;transform:scale(1.05)}}
+#nervLoader .loader-text{margin-top:20px;font-family:var(--font-mono);color:var(--red);letter-spacing:6px;font-size:18px;animation:loaderBlink 0.8s step-end infinite}
+@keyframes loaderBlink{0%,100%{opacity:1}50%{opacity:0}}
+#nervLoader .loader-sub{color:var(--dim);font-size:11px;letter-spacing:3px;margin-top:8px;font-family:var(--font-mono)}
+#nervLoader .loader-bar{width:200px;height:2px;background:rgba(255,255,255,0.05);margin-top:24px;border-radius:1px;overflow:hidden}
+#nervLoader .loader-bar-fill{height:100%;background:var(--red);width:0;animation:loaderBar 0.8s ease-out forwards}
+@keyframes loaderBar{0%{width:0}60%{width:85%}100%{width:100%}}
+
+#backTop{position:fixed;bottom:80px;right:20px;z-index:998;width:40px;height:40px;background:rgba(220,20,60,0.15);border:1px solid var(--red);color:var(--red);border-radius:8px;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:all 0.3s}
+#backTop.visible{opacity:1;pointer-events:auto}
+#backTop:hover{background:var(--red);color:#fff}
+
+.footer{text-align:center;padding:30px;color:var(--dim);font-size:14px;letter-spacing:2px}
+.footer .accent{color:var(--red)}
+
+@media(max-width:768px){.container{padding:10px}.card{padding:24px 16px}.honor-list{grid-template-columns:1fr}}
+
+#navBack{position:fixed;top:20px;left:20px;z-index:998;width:44px;height:44px;background:rgba(220,20,60,0.12);border:1px solid var(--red);color:var(--red);border-radius:8px;cursor:pointer;font-size:20px;display:flex;align-items:center;justify-content:center;transition:all 0.3s;text-decoration:none}
+#navBack:hover{background:var(--red);color:#fff;box-shadow:0 0 15px rgba(220,20,60,0.3)}
+
+</style>
+</head>
+<body>
+<a href="index.html" id="navBack" title="Home">←</a>
+<div id="nervLoader"><div class="hex">⬡</div><div class="loader-text">NERV TERMINAL</div><div class="loader-sub">SYSTEM BOOT SEQUENCE</div><div class="loader-bar"><div class="loader-bar-fill"></div></div></div>
+<div class="bg-asuka"></div><div class="bg-gradient"></div>
+<div class="container">
+<div class="topbar"><a href="index.html" class="back-link"><i class="fas fa-arrow-left"></i></a><div class="page-title"><span>梅西 / 足球</span></div></div>
+
+<img class="cover-img" src="messi.jpg" alt="Messi">
+
+<div class="card">
+<h2>个人简介</h2>
+<p><strong>里奥·安德烈斯·梅西</strong>（Lionel Andres Messi），1987年6月24日出生于阿根廷罗萨里奥。身高170cm，司职前锋，被公认为<strong>足球史上最伟大的球员</strong>（GOAT）。</p>
+<p>梅西6岁开始在罗萨里奥的格兰多利俱乐部踢球，10岁时被诊断出<strong>生长激素缺乏症</strong>。13岁时，巴塞罗那足球俱乐部向他抛出橄榄枝，承诺承担全部治疗费用。梅西全家移居西班牙，从此开启了传奇生涯。</p>
+<p>在巴萨17个赛季，梅西从青涩少年成长为一代巨星：<strong>778场比赛、672粒进球、303次助攻</strong>——这一个个数字，是整整一个时代。</p>
+<p>2021年，因巴萨财务危机，梅西含泪离开效力21年的俱乐部，加盟巴黎圣日耳曼。2023年，他选择了迈阿密国际，开始享受足球的纯粹快乐。</p>
+</div>
+
+<div class="card">
+<h2>国家队荣誉</h2>
+<div class="honor-list">
+<div class="honor-item"><span class="trophy">🏆</span> 2022 FIFA世界杯冠军</div>
+<div class="honor-item"><span class="trophy">🏆</span> 2024 美洲杯冠军</div>
+<div class="honor-item"><span class="trophy">🏆</span> 2021 美洲杯冠军</div>
+<div class="honor-item"><span class="trophy">🏆</span> 2008 奥运会金牌</div>
+<div class="honor-item"><span class="trophy">🥈</span> 2014 世界杯亚军</div>
+<div class="honor-item"><span class="trophy">🏆</span> 2022 Finalissima 冠军</div>
+</div>
+</div>
+
+<div class="card">
+<h2>个人荣誉</h2>
+<div class="honor-list">
+<div class="honor-item"><span class="trophy">⚽</span> 8次金球奖（历史第一）</div>
+<div class="honor-item"><span class="trophy">⚽</span> 6次欧洲金靴奖</div>
+<div class="honor-item"><span class="trophy">⚽</span> 2次FIFA最佳球员</div>
+<div class="honor-item"><span class="trophy">⚽</span> 2022世界杯金球奖</div>
+<div class="honor-item"><span class="trophy">⚽</span> 4次欧冠冠军</div>
+<div class="honor-item"><span class="trophy">⚽</span> 10次西甲冠军</div>
+<div class="honor-item"><span class="trophy">⚽</span> 2022劳伦斯最佳男运动员</div>
+<div class="honor-item"><span class="trophy">⚽</span> 巴萨历史射手王</div>
+</div>
+</div>
+
+<div class="card">
+<h2>2022世界杯：完美加冕</h2>
+<p>2022年12月18日，卡塔尔卢赛尔体育场。阿根廷对阵法国，一场被公认为<strong>史上最伟大的世界杯决赛</strong>。</p>
+<p>梅西梅开二度，姆巴佩帽子戏法，3-3进入点球大战。当蒙铁尔罚入制胜点球的那一刻，<strong>梅西跪地痛哭</strong>——8年前在马拉卡纳的眼泪，终于化成了卢赛尔的荣耀。</p>
+<p>那座大力神杯，是足球之神对他最公正的奖赏。</p>
+</div>
+
+<div class="card">
+<h2>为什么喜欢梅西</h2>
+<p>不是因为数据，不是因为奖杯——而是他踢球的方式。那种举重若轻的盘带，仿佛足球是他身体的一部分。</p>
+<p>更是因为他的品格。谦逊、忠诚、坚韧——场上从不假摔，场下从不造作。在这个浮躁的时代，梅西用他的方式告诉我们：<strong>真正的伟大，是安静地做好每一件事。</strong></p>
+</div>
+
+<button id="backTop">▲</button>
+<div class="footer"><span class="accent">Macmillan141</span> · 个人空间</div>
+</div>
+<script>
+var bt=document.getElementById('backTop');window.addEventListener('scroll',function(){bt.classList.toggle('visible',window.scrollY>400)});bt.addEventListener('click',function(){window.scrollTo({top:0,behavior:'smooth'})});
+window.addEventListener('load',function(){setTimeout(function(){document.getElementById('nervLoader').classList.add('hidden')},600)});
+</script>
+</body>
+</html>
